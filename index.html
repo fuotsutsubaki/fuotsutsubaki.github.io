@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>腐乙tsubaki</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Noto+Serif+JP:wght@300;400&family=Shippori+Mincho:wght@500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --accent: #9b59b6;
+      --accent-glow: #c084fc;
+      --text: #e8e0d0;
+      --text-dim: #888;
+      --card-bg: #1a1a1f;
+      --border: rgba(155, 89, 182, 0.4);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--bg); color: var(--text); font-family: 'Noto Serif JP', serif; min-height: 100vh; overflow-x: hidden; }
+    header { display: flex; align-items: center; justify-content: space-between; padding: 20px 32px; position: relative; }
+    .lang-btn { background: transparent; border: 2px solid var(--accent); color: var(--text); padding: 8px 18px; font-family: 'Noto Serif JP', serif; font-size: 0.85rem; cursor: pointer; border-radius: 6px; transition: all 0.3s; }
+    .lang-btn:hover { background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+    .site-title { position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; display: flex; align-items: baseline; gap: 4px; }
+    .site-title .kanji { font-family: 'Shippori Mincho', serif; font-weight: 500; font-size: clamp(1.6rem, 3.5vw, 2.4rem); color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.15); letter-spacing: 0.08em; }
+    .site-title .roman-inline { font-family: 'Cinzel Decorative', cursive; font-size: clamp(1.6rem, 3.5vw, 2.4rem); color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.15); letter-spacing: 0.05em; }
+    .chars-section { padding: 24px 16px 32px; overflow-x: auto; scrollbar-width: thin; scrollbar-color: var(--accent) transparent; }
+    .chars-row { display: flex; gap: 12px; width: max-content; margin: 0 auto; }
+    .char-card {
+      width: 160px; height: 420px;
+      border-radius: 8px; overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.1);
+      cursor: pointer; flex-shrink: 0; position: relative;
+      background: var(--card-bg);
+      text-decoration: none; display: block;
+      transition: transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94),
+                  border-color 0.35s, box-shadow 0.35s;
+    }
+    .char-card.wide {
+      width: 280px; height: auto;
+      aspect-ratio: 16/9;
+    }
+    .char-card:hover {
+      transform: translateY(-8px) scale(1.03);
+      border-color: var(--glow, #9b59b6);
+      box-shadow: 0 0 20px var(--glow, #9b59b6),
+                  0 0 40px color-mix(in srgb, var(--glow, #9b59b6) 40%, transparent),
+                  0 16px 32px rgba(0,0,0,0.6);
+    }
+    .char-img-wrap {
+      width: 100%; height: 100%;
+      position: absolute; top: 0; left: 0;
+      overflow: hidden;
+    }
+    .char-img-wrap img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94);
+    }
+    .char-card:hover .char-img-wrap img {
+      transform: scale(1.08);
+    }
+    .char-name-bar {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 28px 12px 12px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.75));
+    }
+    .char-name { font-size: 0.75rem; color: #ddd; letter-spacing: 0.05em; }
+    .char-overlay {
+      position: absolute; top: 0; left: 0; right: 0;
+      padding: 10px 14px 8px;
+      background: linear-gradient(180deg, var(--label-color, #e74c3c) 0%, color-mix(in srgb, var(--label-color, #e74c3c) 80%, transparent) 70%, transparent 100%);
+      display: flex; justify-content: space-between; align-items: center;
+      z-index: 3;
+    }
+    .char-overlay-title { font-family: 'Noto Serif JP', serif; font-size: 0.9rem; color: #fff; font-weight: 500; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
+    .char-overlay-number { font-family: 'Cinzel Decorative', cursive; font-size: 0.85rem; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
+    .nav-section { display: flex; justify-content: center; gap: 16px; padding: 16px 0 40px; }
+    .nav-btn { font-family: 'Cinzel Decorative', cursive; font-size: 1rem; color: var(--text); background: transparent; border: 2px solid var(--accent); padding: 12px 40px; border-radius: 8px; cursor: pointer; text-decoration: none; display: inline-block; letter-spacing: 0.05em; transition: all 0.3s; }
+    .nav-btn:hover, .nav-btn.active { background: rgba(155,89,182,0.15); box-shadow: 0 0 14px rgba(155,89,182,0.4); color: var(--accent-glow); }
+    .cta-section { display: flex; justify-content: center; gap: 24px; padding: 0 24px 60px; flex-wrap: wrap; }
+    .cta-card { background: var(--card-bg); border: 2px solid var(--accent); border-radius: 12px; width: 280px; padding: 32px 24px; display: flex; flex-direction: column; align-items: center; gap: 20px; text-decoration: none; transition: all 0.3s; }
+    .cta-card:hover { box-shadow: 0 0 24px rgba(155,89,182,0.5); transform: translateY(-4px); border-color: var(--accent-glow); }
+    .cta-icon { width: 80px; height: 80px; border-radius: 50%; background: #222; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; }
+    .cta-title { font-family: 'Cinzel Decorative', cursive; font-size: 1rem; color: var(--text); text-align: center; line-height: 1.5; }
+    .cta-btn { background: transparent; border: 2px solid var(--text-dim); color: var(--text); padding: 10px 28px; border-radius: 6px; font-family: 'Cinzel Decorative', cursive; font-size: 0.85rem; cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.3s; }
+    .cta-btn:hover { border-color: var(--accent-glow); color: var(--accent-glow); box-shadow: 0 0 10px rgba(192,132,252,0.3); }
+    footer { text-align: center; padding: 24px; color: var(--text-dim); font-size: 0.75rem; border-top: 1px solid rgba(255,255,255,0.05); }
+    /* ── Setsページ カードグリッド ── */
+    .sets-section { padding: 16px 24px 60px; max-width: 1200px; margin: 0 auto; }
+    .sets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+    .set-card {
+      display: block; position: relative; border-radius: 8px; overflow: hidden;
+      aspect-ratio: 16/9; text-decoration: none;
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .set-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 8px 32px rgba(0,0,0,0.6); }
+    .set-img-wrap { width: 100%; height: 100%; }
+    .set-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .set-overlay {
+      position: absolute; top: 0; left: 0; right: 0;
+      padding: 10px 14px 8px;
+      background: linear-gradient(180deg, var(--label-color, #e74c3c) 0%, color-mix(in srgb, var(--label-color, #e74c3c) 80%, transparent) 70%, transparent 100%);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .set-title { font-family: 'Noto Serif JP', serif; font-size: 0.9rem; color: #fff; font-weight: 500; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
+    .set-number { font-family: 'Cinzel Decorative', cursive; font-size: 0.85rem; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <header>
+    <button class="lang-btn" onclick="toggleLang()">日本語</button>
+    <h1 class="site-title"><span class="kanji">腐乙</span><span class="roman-inline">TSUBAKI</span></h1>
+    <div style="width:80px"></div>
+  </header>
+  <section class="chars-section"><div class="chars-row">
+    <div class="char-card" style="--glow:#b0bec5;">
+      <div class="char-img-wrap">
+        <img src="assets/images/信濃.webp" alt="信濃" loading="lazy" onerror="this.style.display='none'" style="object-position:54% 20%;">
+      </div>
+      <div class="char-name-bar"><span class="char-name">信濃</span></div>
+    </div>
+    <div class="char-card" style="--glow:#7c4dff;">
+      <div class="char-img-wrap">
+        <img src="assets/images/武蔵.webp" alt="武蔵" loading="lazy" onerror="this.style.display='none'" style="object-position:51% 20%;">
+      </div>
+      <div class="char-name-bar"><span class="char-name">武蔵</span></div>
+    </div>
+    <div class="char-card" style="--glow:#8d6e63;">
+      <div class="char-img-wrap">
+        <img src="assets/images/天城.webp" alt="天城" loading="lazy" onerror="this.style.display='none'" style="object-position:25% 20%;">
+      </div>
+      <div class="char-name-bar"><span class="char-name">天城</span></div>
+    </div>
+    <div class="char-card" style="--glow:#00bcd4;">
+      <div class="char-img-wrap">
+        <img src="assets/images/加賀.webp" alt="加賀" loading="lazy" onerror="this.style.display='none'" style="object-position:78% 20%;">
+      </div>
+      <div class="char-name-bar"><span class="char-name">加賀</span></div>
+    </div>
+    <div class="char-card" style="--glow:#ff1744;">
+      <div class="char-img-wrap">
+        <img src="assets/images/赤城.webp" alt="赤城" loading="lazy" onerror="this.style.display='none'" style="object-position:20% 20%;">
+      </div>
+      <div class="char-name-bar"><span class="char-name">赤城</span></div>
+    </div>
+  </div></section>
+  <nav class="nav-section"><a href="index.html" class="nav-btn active">Home</a><a href="sets.html" class="nav-btn">Sets</a></nav>
+  <section class="cta-section">
+    <div class="cta-card">
+      <div class="cta-icon" style="background:transparent;"><img src="assets/icons/Discord-Logo-Blurple.svg" alt="icon" style="width:120px;height:60px;object-fit:contain;"></div>
+      <p class="cta-title" data-ja="Discordに参加する" data-es="Únete en Discord">Discordに参加する</p>
+      <a href="https://discord.gg/yNW67CnC" class="cta-btn" data-ja="参加する" data-es="Unirse">参加する</a>
+    </div>
+    <div class="cta-card">
+      <div class="cta-icon" style=""><img src="assets/icons/pixiv_white.svg" alt="icon" style="width:72px;height:72px;object-fit:contain;border-radius:50%;background:#222;padding:8px;"></div>
+      <p class="cta-title" data-ja="Pixivで無料サンプルを見る" data-es="Muestras gratis en Pixiv">Pixivで無料サンプルを見る</p>
+      <a href="https://www.pixiv.net/users/40254194" class="cta-btn" data-ja="見る" data-es="Ver">見る</a>
+    </div>
+    <div class="cta-card">
+      <div class="cta-icon" style="background:transparent;"><img src="assets/icons/logo.svg" alt="icon" style="width:120px;height:60px;object-fit:contain;"></div>
+      <p class="cta-title" data-ja="BOOTH作品を購入する" data-es="Comprar obras BOOTH">BOOTH作品を購入する</p>
+      <a href="https://fuotsutsubaki.booth.pm/" class="cta-btn" data-ja="見る" data-es="Ver">見る</a>
+    </div>
+  </section>
+  <footer><p>© 2026 腐乙tsubaki — All rights reserved</p></footer>
+  <script>
+    let currentLang = 'ja';
+    function toggleLang() {
+      currentLang = currentLang === 'ja' ? 'es' : 'ja';
+      document.querySelector('.lang-btn').textContent = currentLang === 'ja' ? '日本語' : 'Español';
+      document.querySelectorAll('[data-ja]').forEach(el => { el.textContent = el.dataset[currentLang]; });
+    }
+  </script>
+</body>
+</html>
